@@ -5,15 +5,18 @@ from flask_cors import CORS
 from geopy.distance import geodesic
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Pricing (Example: Chennai taxi rates)
-BASE_FARE = 50  # Initial fare
-PER_KM_RATE = 12  # Per km price
+# Define fare rates for different vehicle types
+FARE_RATES = {
+    "auto": {"base": 30, "per_km": 10},
+    "sedan": {"base": 50, "per_km": 12},
+    "suv": {"base": 70, "per_km": 15},
+    "luxury": {"base": 100, "per_km": 20},
+}
 
 def get_coordinates(area):
     """Fetch latitude and longitude of an area"""
@@ -27,31 +30,23 @@ def get_coordinates(area):
 def predict_fare():
     """API endpoint to calculate taxi fare"""
     data = request.json
-    area1, area2 = data.get("area1"), data.get("area2")
+    area1, area2, vehicle_type = data.get("area1"), data.get("area2"), data.get("vehicle_type")
 
-    if not area1 or not area2:
-        return jsonify({"error": "Both area names are required"}), 400
+    if not area1 or not area2 or not vehicle_type:
+        return jsonify({"error": "All fields are required"}), 400
+
+    if vehicle_type not in FARE_RATES:
+        return jsonify({"error": "Invalid vehicle type"}), 400
 
     coords1, coords2 = get_coordinates(area1), get_coordinates(area2)
     if coords1 and coords2:
         distance = geodesic(coords1, coords2).km
-        fare = round(BASE_FARE + (PER_KM_RATE * distance), 2)
-        return jsonify({"estimated_fare": fare, "distance_km": round(distance, 2)})
+        base_fare = FARE_RATES[vehicle_type]["base"]
+        per_km_rate = FARE_RATES[vehicle_type]["per_km"]
+        fare = round(base_fare + (per_km_rate * distance), 2)
+        return jsonify({"estimated_fare": fare, "distance_km": round(distance, 2), "vehicle_type": vehicle_type})
     
     return jsonify({"error": "Could not calculate distance"}), 500
-
-@app.route("/search", methods=["GET"])
-def search_areas():
-    """API to fetch matching area names"""
-    query = request.args.get("query")
-    if not query:
-        return jsonify([])
-
-    url = f"https://nominatim.openstreetmap.org/search?format=json&q={query}, Tamil Nadu"
-    response = requests.get(url).json()
-    
-    areas = [{"name": result["display_name"]} for result in response[:5]]
-    return jsonify(areas)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
