@@ -24,9 +24,9 @@ TAXI_RATES_CHENNAI = {
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Chennai Exclusive Taxi Price Prediction API is running!"})
+    return jsonify({"message": " Exclusive Taxi Price Prediction API is running!"})
 
-# Auto-suggest locations in Tamil Nadu
+# Auto-suggest locations within Tamil Nadu only
 @app.route('/suggest', methods=['GET'])
 def suggest_locations():
     query = request.args.get('query', '')
@@ -37,7 +37,7 @@ def suggest_locations():
     params = {
         "input": query,
         "types": "geocode",
-        "components": "country:IN",
+        "components": "country:IN|administrative_area:Tamil Nadu",  # Ensure Tamil Nadu
         "key": GOOGLE_MAPS_API_KEY,
     }
 
