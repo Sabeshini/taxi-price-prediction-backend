@@ -4,6 +4,37 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from geopy.distance import geodesic
 from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import requests
+
+app = Flask(__name__)
+CORS(app)  # Allow cross-origin requests
+
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+
+@app.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    query = request.args.get('query', '')
+    if not query:
+        return jsonify([])  # Return an empty list if no query is provided
+
+    params = {
+        "format": "json",
+        "q": query,
+        "limit": 5  # Limit suggestions to 5 results
+    }
+
+    response = requests.get(NOMINATIM_URL, params=params)
+    data = response.json()
+
+    suggestions = [{"name": place["display_name"], "lat": place["lat"], "lon": place["lon"]} for place in data]
+
+    return jsonify(suggestions)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
 
 load_dotenv()
 
