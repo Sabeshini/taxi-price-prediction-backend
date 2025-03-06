@@ -9,3 +9,7 @@ MarkupSafe==3.0.2
 packaging==24.2
 Werkzeug==3.1.3
 requests==2.31.0
+certifi==2024.2.2  # Ensures SSL certificate issues are avoided
+python-dotenv==1.0.1  # For managing API keys and environment variables
+geopy==2.4.0  # For geolocation calculations
+googlemaps==4.10.0  # Optional: Google Maps API wrapper
