@@ -24,9 +24,9 @@ TAXI_RATES_CHENNAI = {
 
 @app.route('/')
 def home():
-    return jsonify({"message": " Exclusive Taxi Price Prediction API is running!"})
+    return jsonify({"message": "Exclusive Taxi Price Prediction API is running!"})
 
-# Auto-suggest locations within Tamil Nadu only
+# Auto-suggest locations within Tamil Nadu (Top 3 Results)
 @app.route('/suggest', methods=['GET'])
 def suggest_locations():
     query = request.args.get('query', '')
@@ -37,7 +37,7 @@ def suggest_locations():
     params = {
         "input": query,
         "types": "geocode",
-        "components": "country:IN|administrative_area:Tamil Nadu",  # Ensure Tamil Nadu
+        "components": "country:IN|administrative_area:Tamil Nadu",  # Tamil Nadu filtering
         "key": GOOGLE_MAPS_API_KEY,
     }
 
@@ -45,11 +45,11 @@ def suggest_locations():
         response = requests.get(GOOGLE_PLACES_URL, params=params)
         api_data = response.json()
 
+        # Extract top 3 location suggestions
         suggestions = [
             place["description"]
-            for place in api_data.get("predictions", [])
-            if "Tamil Nadu" in place["description"]
-        ]
+            for place in api_data.get("predictions", []) if "Tamil Nadu" in place["description"]
+        ][:3]  # Limit to top 3 results
 
         return jsonify({"suggestions": suggestions})
     except Exception as e:
@@ -91,7 +91,7 @@ def predict():
         estimated_fare = distance_km * rate_per_km
 
         # Get directions route URL
-        directions_url = f"https://www.google.com/maps/dir/{area1}/ {area2}/"
+        directions_url = f"https://www.google.com/maps/dir/{area1}/{area2}/"
 
         return jsonify({
             "area1": area1,
